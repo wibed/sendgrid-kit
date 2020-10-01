@@ -29,6 +29,14 @@ public struct SendGridClient {
         return decoder
     }()
     
+    public func delegating(to eventLoop: EventLoop) -> SendGridClient {
+        SendGridClient(
+            http: self.http,
+            eventLoop: eventLoop,
+            config: self.config!
+        )
+    }
+    
     
     /// Send to endpoint
     public func send(emails: [SendGridEmail], on eventLoop: EventLoop) ->
@@ -68,8 +76,6 @@ public struct SendGridClient {
                             return eventLoop.makeFailedFuture(error)
                         }
                     }
-                    
-                    return eventLoop.makeSucceededFuture(())
                 }
             } catch {
                 return eventLoop.makeFailedFuture(error)
