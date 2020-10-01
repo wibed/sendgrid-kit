@@ -10,6 +10,12 @@ public struct SendGridClient {
     public let eventLoop: EventLoop
     var config: SendGridConfiguration?
     
+    public init(http: HTTPClient, eventLoop: EventLoop, config: SendGridConfiguration){
+        self.http = http
+        self.eventLoop = eventLoop
+        self.config = config
+    }
+    
     /// Encode/decode messages
     private let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
