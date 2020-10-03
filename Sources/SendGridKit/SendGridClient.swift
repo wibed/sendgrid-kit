@@ -6,9 +6,9 @@ import NIOHTTP1
 
 public struct SendGridClient {
     
-    let http: HTTPClient
+    public let http: HTTPClient
     public let eventLoop: EventLoop
-    var config: SendGridConfiguration?
+    public var config: SendGridConfiguration?
     
     public init(http: HTTPClient, eventLoop: EventLoop, config: SendGridConfiguration){
         self.http = http
