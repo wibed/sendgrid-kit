@@ -101,12 +101,4 @@ public struct SendGridClient {
             return eventLoop.makeFailedFuture(error)
         }
     }
-    
-    private func execute(_ sendgrid: HTTPClient.Request)
-    -> EventLoopFuture<HTTPClient.Response> {
-        return self.http.execute(
-            request: sendgrid,
-            eventLoop: .delegate(on: self.eventLoop)
-        ).map { $0 }
-    }
 }
