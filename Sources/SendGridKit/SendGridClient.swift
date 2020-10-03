@@ -38,6 +38,48 @@ public struct SendGridClient {
     }
     
     
+    public func send(email: SendGridEmail)
+        -> EventLoopFuture<Void> {
+        
+        do {
+            
+            let method: HTTPMethod = .POST
+            var headers = HTTPHeaders()
+            headers.add(name: "Authorization", value: "Bearer \(self.config!.apiKey)")
+            headers.add(name: "Content-Type", value: "application/json")
+            let url = self.config!.apiURL
+            let body = try encoder.encode(email)
+            let emailRequest = try HTTPClient.Request(
+                url: url,
+                method: method,
+                headers: headers,
+                body: .data(body)
+            )
+            
+            return self.http.execute(
+                request: emailRequest,
+                eventLoop: .delegate(on: self.eventLoop)).flatMap { response in
+                    switch response.status {
+                    case .ok, .accepted:
+                        return eventLoop.makeSucceededFuture(())
+                    default:
+                        // JSONDecoder will handle empty body by throwing decoding error
+                        let byteBuffer = response.body ?? ByteBuffer(.init())
+                        let responseData = Data(byteBuffer.readableBytesView)
+                        
+                        do {
+                            let error = try self.decoder.decode(SendGridError.self, from: responseData)
+                            return eventLoop.makeFailedFuture(error)
+                        } catch  {
+                            return eventLoop.makeFailedFuture(error)
+                        }
+                }
+            }
+        } catch {
+            return self.eventLoop.makeFailedFuture(error)
+        }
+    }
+    
     /// Send to endpoint
     public func mailRequest(email: SendGridEmail) -> EventLoopFuture<HTTPClient.Request> {
         do {
@@ -60,7 +102,7 @@ public struct SendGridClient {
         }
     }
     
-    public func execute(_ sendgrid: HTTPClient.Request)
+    private func execute(_ sendgrid: HTTPClient.Request)
     -> EventLoopFuture<HTTPClient.Response> {
         return self.http.execute(
             request: sendgrid,
