@@ -61,7 +61,7 @@ public struct SendGridClient {
                 eventLoop: .delegate(on: self.eventLoop)).flatMap { response in
                     switch response.status {
                     case .ok, .accepted:
-                        return eventLoop.makeSucceededFuture(())
+                        return self.eventLoop.makeSucceededFuture(())
                     default:
                         // JSONDecoder will handle empty body by throwing decoding error
                         let byteBuffer = response.body ?? ByteBuffer(.init())
@@ -69,9 +69,9 @@ public struct SendGridClient {
                         
                         do {
                             let error = try self.decoder.decode(SendGridError.self, from: responseData)
-                            return eventLoop.makeFailedFuture(error)
+                            return self.eventLoop.makeFailedFuture(error)
                         } catch  {
-                            return eventLoop.makeFailedFuture(error)
+                            return self.eventLoop.makeFailedFuture(error)
                         }
                 }
             }
@@ -91,14 +91,14 @@ public struct SendGridClient {
             
             let body = try encoder.encode(email)
             
-            return eventLoop.makeSucceededFuture(
+            return self.eventLoop.makeSucceededFuture(
                 try HTTPClient.Request(url: url,
                                method: method,
                                headers: headers,
                                body: .data(body))
             )
         } catch {
-            return eventLoop.makeFailedFuture(error)
+            return self.eventLoop.makeFailedFuture(error)
         }
     }
 }
